@@ -8,6 +8,9 @@
     <Filter Include="External Libraries">
       <UniqueIdentifier>{5983d349-5995-4de1-a271-3cde19b66e5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{d8e9778b-771d-4ef4-8c64-cc2020c4c35e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Src\main.cpp">
@@ -22,7 +25,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h">
-      <Filter>Source Files</Filter>
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Image.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Upscaling.h">
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

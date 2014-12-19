@@ -1,10 +1,15 @@
 #include "Blur.h"
 #include <vector>
 
-void blur(unsigned char* src, unsigned char* dst, unsigned int width, unsigned int height, unsigned int kernelSize) {
+Image blur(Image& img, unsigned int kernelSize) {
 
-	std::vector<unsigned char> tempImage(width*height * 4);
-	unsigned char* tmp = &tempImage[0];
+	unsigned int width = img.width, height = img.height;
+	unsigned char* src = &img.img[0];
+
+	Image tempImage(img);
+	unsigned char* tmp = &tempImage.img[0];
+	Image toReturn(img);
+	unsigned char* dst = &toReturn.img[0];
 
 	for (unsigned int line = 0; line < height; line++) {
 
@@ -28,7 +33,7 @@ void blur(unsigned char* src, unsigned char* dst, unsigned int width, unsigned i
 		tmp += width * 4;
 	}
 
-	tmp = &tempImage[0];
+	tmp = &tempImage.img[0];
 
 	for (unsigned int row = 0; row < width; row++) {
 
@@ -51,5 +56,7 @@ void blur(unsigned char* src, unsigned char* dst, unsigned int width, unsigned i
 		tmp += 4;
 		dst += 4;
 	}
+
+	return toReturn;
 
 }

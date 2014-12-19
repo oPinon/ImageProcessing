@@ -17,6 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h" />
+    <ClInclude Include="..\src\Image.h" />
+    <ClInclude Include="..\src\Upscaling.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{95D78B96-5EDD-497A-9771-34D18C26BEB3}</ProjectGuid>
