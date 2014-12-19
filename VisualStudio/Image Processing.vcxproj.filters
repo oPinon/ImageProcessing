@@ -22,6 +22,9 @@
     <ClCompile Include="..\..\..\..\Libraries\LodePNG\lodepng.cpp">
       <Filter>External Libraries</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Upscaling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h">

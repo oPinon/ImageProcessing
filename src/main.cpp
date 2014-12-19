@@ -27,7 +27,7 @@ int main(int argc, char* argv) {
 	clock_t start = clock();
 
 	// Processing
-	dst = blur(src, 10);
+	dst = scaleNearest(src, 0.5);
 
 	cout << "process done in " << (clock() - start) * 1000. / CLOCKS_PER_SEC << " ms" << endl;
 
