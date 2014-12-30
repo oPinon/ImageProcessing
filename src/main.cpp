@@ -14,7 +14,7 @@ using namespace std;
 
 int main(int argc, char* argv) {
 
-	char* src_filename = "../images/mona.png";
+	char* src_filename = "../images/lucaBic.png";
 	char* out_filename = "../images/out.png";
 
 	// reading input image
@@ -27,7 +27,7 @@ int main(int argc, char* argv) {
 	clock_t start = clock();
 
 	// Processing
-	dst = scaleNearest(src, 0.5);
+	dst = scalePaint(src, 4);
 
 	cout << "process done in " << (clock() - start) * 1000. / CLOCKS_PER_SEC << " ms" << endl;
 
