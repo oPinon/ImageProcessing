@@ -24,6 +24,45 @@ Image scaleNearest(const Image& img, float scale) {
 	return toReturn;
 }
 
+Image upscaleLinear(const Image& img, float scale) {
+
+	unsigned int src_width = img.width, src_height = img.height;
+	unsigned int dst_width = img.width * scale, dst_height = img.height * scale;
+
+	Image toReturn = { std::vector<unsigned char>(dst_width*dst_height * 4), dst_width, dst_height };
+
+	const unsigned char* src = &img.img[0];
+	unsigned char* dst = &toReturn.img[0];
+
+	for (unsigned int color = 0; color < 4; color++) {
+		for (unsigned int x = 0; x < dst_width; x++) {
+			for (unsigned int y = 0; y < dst_height; y++) {
+
+				unsigned int x0 = x / scale;
+				unsigned int y0 = y / scale;
+
+				unsigned char rightBot = src[4 * (x0 + y0*src_width) + color];
+				unsigned char rightUp = src[4 * (x0 + (y0 + 1)*src_width) + color];
+				unsigned char leftBot = src[4 * (x0 + 1 + y0*src_width) + color];
+				unsigned char leftUp = src[4 * (x0 + 1 + (y0 + 1)*src_width) + color];
+
+				float x_ratio = ((float)x) / scale - x0;
+				float y_ratio = ((float)y) / scale - y0;
+
+				float leftUpRatio = x_ratio*y_ratio;
+				float leftBotRatio = x_ratio*(1-y_ratio);
+				float rightUpRatio = (1-x_ratio)*y_ratio;
+				float rightBotRatio = (1-x_ratio)*(1 - y_ratio);
+
+				float value = leftUpRatio * leftUp + leftBotRatio * leftBot + rightUpRatio * rightUp + rightBotRatio * rightBot;
+				dst[4 * (x + y*dst_width) + color] = value;
+			}
+		}
+	}
+
+	return toReturn;
+}
+
 unsigned int clamp(unsigned int value, unsigned int min, unsigned int max) {
 	if (value < min) { return min; }
 	else if (value > max) { return max; }
@@ -60,7 +99,7 @@ Image processBlur(const Image& src, int size, int compare(int src, int dst) ) {
 
 Image scalePaint(const Image& src, int scale) {
 
-	Image up = src;// scaleNearest(src, scale);
+	Image up = upscaleLinear(src, scale);
 	Image blur = processBlur(up, scale, [](int src, int dst) { return dst; } );
 	Image blurHigh = processBlur(up, scale, [](int src, int dst) { return (src < dst) ? dst : src; });
 	Image blurLow = processBlur(up, scale, [](int src, int dst) { return (src > dst) ? dst : src; });
