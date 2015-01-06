@@ -15,11 +15,13 @@
     <ClCompile Include="..\src\Blur.cpp" />
     <ClCompile Include="..\Src\main.cpp" />
     <ClCompile Include="..\src\Upscaling.cpp" />
+    <ClCompile Include="..\src\VoxelTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h" />
     <ClInclude Include="..\src\Image.h" />
     <ClInclude Include="..\src\Upscaling.h" />
+    <ClInclude Include="..\src\VoxelTexture.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{95D78B96-5EDD-497A-9771-34D18C26BEB3}</ProjectGuid>
