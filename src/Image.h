@@ -23,7 +23,7 @@ inline Image loadImage(const std::string& filename) {
 	return toReturn;
 }
 
-inline void writeImage(const std::string& filename, const Image& img) {
+inline void writeImage(const Image& img, const std::string& filename) {
 	unsigned error = lodepng::encode(filename, img.img, img.width, img.height);
 	if (error) { std::cerr << "error " << error << " when writing " << filename << " : " << lodepng_error_text(error) << std::endl; }
 }

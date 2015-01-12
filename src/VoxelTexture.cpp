@@ -50,6 +50,6 @@ void makeVoxelTexture(int argc, char** argv) {
 		int nb_digits = atoi(argv[2]);
 		string folder = argv[1]; folder += "/";
 		Image tex = loadVoxelImages(folder, nb_digits);
-		writeImage(folder, tex);
+		writeImage(tex, folder);
 	}
 }

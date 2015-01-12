@@ -13,12 +13,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Libraries\LodePNG\lodepng.cpp" />
     <ClCompile Include="..\src\Blur.cpp" />
+    <ClCompile Include="..\src\Filtering.cpp" />
     <ClCompile Include="..\Src\main.cpp" />
     <ClCompile Include="..\src\Upscaling.cpp" />
     <ClCompile Include="..\src\VoxelTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h" />
+    <ClInclude Include="..\src\Filtering.h" />
     <ClInclude Include="..\src\Image.h" />
     <ClInclude Include="..\src\Upscaling.h" />
     <ClInclude Include="..\src\VoxelTexture.h" />

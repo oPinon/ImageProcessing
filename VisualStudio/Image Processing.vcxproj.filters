@@ -28,6 +28,9 @@
     <ClCompile Include="..\src\VoxelTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Filtering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Blur.h">
@@ -40,6 +43,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\src\VoxelTexture.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Filtering.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
