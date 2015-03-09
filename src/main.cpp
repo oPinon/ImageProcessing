@@ -2,14 +2,12 @@
 #include <iostream>
 #include <time.h>
 
-// external libraries
-#include "lodepng.h"
-
 // project libraries
 #include "Image.h"
 #include "Filtering.h"
 #include "Upscaling.h"
 #include "VoxelTexture.h"
+#include "Tiler.h"
 
 using namespace std;
 
@@ -17,11 +15,9 @@ int main(int argc, char** argv) {
 
 	//makeVoxelTexture(argc, argv);
 
-	Image src = loadImage("../images/LicheusHigh.png");
+	Image src = loadImage("../images/Big.png");
 
-	Image result = blur(src, 64);
-
-	writeImage(result,"../images/Result.png");
+	image2Tiles(src, 256, "../images/Tiles");
 
 	return 0;
 }
