@@ -3,21 +3,24 @@
 #include <time.h>
 
 // project libraries
-#include "Image.h"
-#include "Filtering.h"
-#include "Upscaling.h"
-#include "VoxelTexture.h"
-#include "Tiler.h"
+#include "SuperSample.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
 
-	//makeVoxelTexture(argc, argv);
+	Image src = loadImage("../images/SuperSample/128.png");
+	Image srcB = loadImage("../images/SuperSample/128l.png");
+	Image dstB = loadImage("../images/SuperSample/256.png");
 
-	Image src = loadImage("../images/Big.png");
+	printf("computing supersampling... ");
+	clock_t start = clock();
 
-	image2Tiles(src, 256, "../images/Tiles");
+	Image dst = superSample(src, srcB, dstB);
+
+	printf("done in %u ms\n", (unsigned int) (clock() - start)* 1000 / CLOCKS_PER_SEC);
+
+	writeImage(dst, "../images/SuperSample/dst.png");
 
 	return 0;
 }

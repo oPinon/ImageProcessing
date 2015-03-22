@@ -15,6 +15,7 @@
     <ClCompile Include="..\src\Blur.cpp" />
     <ClCompile Include="..\src\Filtering.cpp" />
     <ClCompile Include="..\Src\main.cpp" />
+    <ClCompile Include="..\src\SuperSample.cpp" />
     <ClCompile Include="..\src\Tiler.cpp" />
     <ClCompile Include="..\src\Upscaling.cpp" />
     <ClCompile Include="..\src\VoxelTexture.cpp" />
@@ -23,6 +24,7 @@
     <ClInclude Include="..\src\Blur.h" />
     <ClInclude Include="..\src\Filtering.h" />
     <ClInclude Include="..\src\Image.h" />
+    <ClInclude Include="..\src\SuperSample.h" />
     <ClInclude Include="..\src\Tiler.h" />
     <ClInclude Include="..\src\Upscaling.h" />
     <ClInclude Include="..\src\VoxelTexture.h" />
