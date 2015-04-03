@@ -6,6 +6,13 @@
 uint patchSize = 5;
 uint searchSize = 5;
 
+template<class type>
+uchar clamp(type v) {
+	if (v < 0) { return 0; }
+	if (v > 255) { return 255; }
+	return (uchar) v;
+}
+
 Image superSample(Image src, Image srcB, Image dstB) {
 
 	uint highWidth = dstB.width;
@@ -30,8 +37,15 @@ Image superSample(Image src, Image srcB, Image dstB) {
 		diff.count[i] = 0;
 	}
 
+	uint last = 0;
 	// for all dense patches in the hires image
 	for (uint x0 = 0; x0 < highWidth - patchSize; x0++) {
+
+		uint perc = (x0 * 100) / (highWidth - patchSize);
+		if (perc != last) {
+			printf("%u % \n", perc);
+			last = perc;
+		}
 
 		for (uint y0 = 0; y0 < highHeight - patchSize; y0++) {
 
@@ -101,9 +115,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 		int d = 0;
 		if (count > 0) { d = diff.img[i] / ((int) count);  }
 		int pix = dstB.img[i] + d;
-		if (pix < 0) { pix = 0; }
-		if (pix > 255) { pix = 255; }
-		dst.img[i] = (uchar) pix;
+		dst.img[i] = clamp( pix );
 	}
 
 	free(diff.img);
@@ -125,4 +137,101 @@ void writeImage(Image im, char* filename) {
 
 	uint error = lodepng_encode32_file(filename, im.img, im.width, im.height);
 	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+}
+uint max(const uint a, const uint b) { if (a > b) { return a; } else { return b; } }
+uint min(const uint a, const uint b) { if (a < b) { return a; } else { return b; } }
+
+static float KernelSpan = 1.0f;
+//float kernel(float x) { float xAbs = abs(x); return (xAbs < 0.5) ? 1.0f : 0.0f; } // nearest neighbor
+float kernel(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
+//float kernel(float x) { if (x == 0) { return 1; } float xAbs = abs(x); return sin(xAbs*3.14) / (3.14*xAbs); } // sinc, 2 lobes
+
+Image resize(const Image& src, const uint dstWidth, const uint dstHeight) {
+
+	float kernelScaling = ((float)(src.height) / min(dstHeight, src.height)); // scales the kernel (on the src ref) to the size of the biggest. = 1 if upscaling, > 1 otherwise
+	uint kernelSpan = (uint) (2 * KernelSpan * kernelScaling);
+
+	float* coeffs = (float*)malloc(dstHeight*kernelSpan*sizeof(float));
+	uint* starts = (uint*)malloc(dstHeight*sizeof(uint));
+
+	for (uint i = 0; i < dstHeight; i++) {
+
+		float yDst = ((i + 0.5f)*src.height) / dstHeight;
+		uint start = (uint)ceil(yDst - 0.5f - KernelSpan); // ceil -> fist int greater than or equal
+		starts[i] = start;
+		for (uint j = 0; j < kernelSpan; j++) {
+			float ySrc = start + j + 0.5f;
+			float coeff = kernel((yDst - ySrc) / kernelScaling);
+			coeffs[i*kernelSpan + j] = coeff;
+		}
+	}
+
+	float* temp = (float*) malloc(src.channels*src.width*dstHeight*sizeof(float));
+
+	// TODO : alpha should be used as an interpolation factor
+	for (uint k = 0; k < src.channels; k++) {
+		for (uint x = 0; x < src.width; x++) {
+			for (uint y = 0; y < dstHeight; y++) {
+
+				float sum = 0, norm = 0;
+				for (uint i = 0; i < kernelSpan; i++) {
+					uint srcIndex = src.channels*(src.width*max(0, min(starts[y] + i, src.height - 1))+x) + k;
+					float coeff = coeffs[y*kernelSpan + i];
+					norm += coeff;
+					sum += src.img[srcIndex] * coeff;
+				}
+				temp[src.channels*(src.width*y + x) + k] = sum / norm;
+			}
+		}
+	}
+
+	free(coeffs);
+	free(starts);
+
+	// the same but for horizontal scaling
+
+	kernelScaling = ((float)(src.width) / min(dstWidth, src.width));
+	kernelSpan = (uint)(2 * KernelSpan * kernelScaling);
+
+	coeffs = (float*)malloc(dstWidth*kernelSpan*sizeof(float));
+	starts = (uint*)malloc(dstWidth*sizeof(uint));
+
+	for (uint i = 0; i < dstWidth; i++) {
+
+		float xDst = ((i + 0.5f)*src.width) / dstWidth;
+		uint start = (uint) ceil(xDst - 0.5f - KernelSpan); // ceil -> fist int greater than or equal
+		starts[i] = start;
+		for (uint j = 0; j < kernelSpan; j++) {
+			float xSrc = start + j + 0.5f;
+			float coeff = kernel((xDst - xSrc) / kernelScaling); // correct if upscaling, incorrect if downscaling
+			coeffs[i*kernelSpan + j] = coeff;
+		}
+	}
+
+	Image dst;
+	dst.channels = src.channels;
+	dst.width = dstWidth;
+	dst.height = dstHeight;
+	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height);
+
+	// TODO : alpha should be used as an interpolation factor
+	for (uint k = 0; k < dst.channels; k++) {
+		for (uint y = 0; y < dst.height; y++) {
+			for (uint x = 0; x < dst.width; x++) {
+
+				float sum = 0, norm = 0;
+				for (uint i = 0; i < kernelSpan; i++) {
+					uint srcIndex = src.channels*(src.width*y + max(0,min(starts[x] + i, src.width-1))) + k;
+					float coeff = coeffs[x*kernelSpan + i];
+					norm += coeff;
+					sum += temp[srcIndex] * coeff;
+				}
+				dst.img[dst.channels*(dst.width*y + x) + k] = clamp(sum / norm);
+			}
+		}
+	}
+
+	free(coeffs);
+	free(starts);
+	return dst;
 }
