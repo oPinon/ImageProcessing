@@ -19,8 +19,8 @@ typedef struct _ImageD {
 
 typedef enum { NEAREST, LINEAR, SINC, CUBIC10 } Interpolation;
 
-Image loadImage(char* filename);
-void writeImage(Image im, char* filename);
+Image loadImage(const char* filename);
+void writeImage(Image im, const char* filename);
 
 /*
 * src : source image

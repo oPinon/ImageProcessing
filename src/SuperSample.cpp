@@ -41,11 +41,11 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	// for all dense patches in the hires image
 	for (uint x0 = 0; x0 < highWidth - patchSize; x0++) {
 
-		uint perc = (x0 * 100) / (highWidth - patchSize);
+		/*uint perc = (x0 * 100) / (highWidth - patchSize);
 		if (perc != last) {
 			printf("%u % \n", perc);
 			last = perc;
-		}
+		}*/
 
 		for (uint y0 = 0; y0 < highHeight - patchSize; y0++) {
 
@@ -124,7 +124,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	return dst;
 }
 
-Image loadImage(char* filename) {
+Image loadImage(const char* filename) {
 
 	Image dst;
 	dst.channels = 4;
@@ -133,7 +133,7 @@ Image loadImage(char* filename) {
 	return dst;
 }
 
-void writeImage(Image im, char* filename) {
+void writeImage(Image im, const char* filename) {
 
 	uint error = lodepng_encode32_file(filename, im.img, im.width, im.height);
 	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
