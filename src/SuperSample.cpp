@@ -138,13 +138,25 @@ void writeImage(Image im, char* filename) {
 	uint error = lodepng_encode32_file(filename, im.img, im.width, im.height);
 	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 }
+
 uint max(const uint a, const uint b) { if (a > b) { return a; } else { return b; } }
+float max(const float a, const float b) { if (a > b) { return a; } else { return b; } }
 uint min(const uint a, const uint b) { if (a < b) { return a; } else { return b; } }
 
-static float KernelSpan = 1.0f;
+static float KernelSpan = 2.0f;
 //float kernel(float x) { float xAbs = abs(x); return (xAbs < 0.5) ? 1.0f : 0.0f; } // nearest neighbor
-float kernel(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
+//float kernel(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
 //float kernel(float x) { if (x == 0) { return 1; } float xAbs = abs(x); return sin(xAbs*3.14) / (3.14*xAbs); } // sinc, 2 lobes
+float kernel(float x) {
+	x = abs(x);
+	if (x >= 2) { return 0; }
+	else if (x >= 1) {
+		return 1 / 6.0f * (-x*x*x + 6 * x*x - 12 * x + 8);
+	}
+	else {
+		return 1 / 6.0f * (3 * x*x*x - 6 * x*x + 4);
+	}
+} // cubic smoother
 
 Image resize(const Image& src, const uint dstWidth, const uint dstHeight) {
 
@@ -156,8 +168,8 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight) {
 
 	for (uint i = 0; i < dstHeight; i++) {
 
-		float yDst = ((i + 0.5f)*src.height) / dstHeight;
-		uint start = (uint)ceil(yDst - 0.5f - KernelSpan); // ceil -> fist int greater than or equal
+		float yDst = ((float)(i + 0.5f)*src.height) / dstHeight;
+		uint start = (uint)ceil(max(0, yDst - 0.5f - kernelSpan / 2)); // ceil -> fist int greater than or equal
 		starts[i] = start;
 		for (uint j = 0; j < kernelSpan; j++) {
 			float ySrc = start + j + 0.5f;
@@ -191,19 +203,20 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight) {
 	// the same but for horizontal scaling
 
 	kernelScaling = ((float)(src.width) / min(dstWidth, src.width));
-	kernelSpan = (uint)(2 * KernelSpan * kernelScaling);
+	kernelSpan = (uint) ( 2 * KernelSpan * kernelScaling ); // total span of the kernel
 
 	coeffs = (float*)malloc(dstWidth*kernelSpan*sizeof(float));
 	starts = (uint*)malloc(dstWidth*sizeof(uint));
 
 	for (uint i = 0; i < dstWidth; i++) {
 
-		float xDst = ((i + 0.5f)*src.width) / dstWidth;
-		uint start = (uint) ceil(xDst - 0.5f - KernelSpan); // ceil -> fist int greater than or equal
+		float xDst = ((float)(i + 0.5f)*src.width) / dstWidth;
+		uint start = (uint) ceil( max(0, xDst - 0.5f - kernelSpan/2) ); // ceil -> fist int greater than or equal
+		//cout << "start = " << start << endl;
 		starts[i] = start;
 		for (uint j = 0; j < kernelSpan; j++) {
 			float xSrc = start + j + 0.5f;
-			float coeff = kernel((xDst - xSrc) / kernelScaling); // correct if upscaling, incorrect if downscaling
+			float coeff = kernel((xDst - xSrc) / kernelScaling);
 			coeffs[i*kernelSpan + j] = coeff;
 		}
 	}
