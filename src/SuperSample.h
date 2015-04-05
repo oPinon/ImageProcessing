@@ -17,6 +17,8 @@ typedef struct _ImageD {
 	uint width, height, channels;
 } ImageD;
 
+typedef enum { NEAREST, LINEAR, SINC, CUBIC10 } Interpolation;
+
 Image loadImage(char* filename);
 void writeImage(Image im, char* filename);
 
@@ -27,10 +29,4 @@ void writeImage(Image im, char* filename);
 */
 Image superSample(Image src, Image srcB, Image dstB);
 
-/*
-* Resamples the source image's pixels to the destination image
-* (using dst's width and height)
-*/
-void resize(const Image& src, Image& dst);
-
-Image resize(const Image& src, const uint dstWidth, const uint dstHeight);
+Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation);

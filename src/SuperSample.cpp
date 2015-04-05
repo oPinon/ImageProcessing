@@ -143,11 +143,12 @@ uint max(const uint a, const uint b) { if (a > b) { return a; } else { return b;
 float max(const float a, const float b) { if (a > b) { return a; } else { return b; } }
 uint min(const uint a, const uint b) { if (a < b) { return a; } else { return b; } }
 
-static float KernelSpan = 2.0f;
-//float kernel(float x) { float xAbs = abs(x); return (xAbs < 0.5) ? 1.0f : 0.0f; } // nearest neighbor
-//float kernel(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
-//float kernel(float x) { if (x == 0) { return 1; } float xAbs = abs(x); return sin(xAbs*3.14) / (3.14*xAbs); } // sinc, 2 lobes
-float kernel(float x) {
+static float KernelSpan = 2.0f; // 2 works for all kernels. Linear requires 1, NN requires 0.5. Decrease for faster computations.
+
+float kernelNN(float x) { float xAbs = abs(x); return (xAbs < 0.5) ? 1.0f : 0.0f; } // nearest neighbor
+float kernelLin(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
+float kernelSinc(float x) { if (x == 0) { return 1; } float xAbs = abs(x); return sin(xAbs*3.14) / (3.14*xAbs); } // sinc, 2 lobes
+float kernelCubic10(float x) {
 	x = abs(x);
 	if (x >= 2) { return 0; }
 	else if (x >= 1) {
@@ -158,7 +159,15 @@ float kernel(float x) {
 	}
 } // cubic smoother
 
-Image resize(const Image& src, const uint dstWidth, const uint dstHeight) {
+Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation) {
+
+	auto kernel = kernelNN;
+	switch (interpolation) {
+		case NEAREST: kernel = kernelNN; KernelSpan = 1.0f; break;
+		case LINEAR: kernel = kernelLin; KernelSpan = 1.0f; break;
+		case SINC: kernel = kernelSinc; KernelSpan = 2.0f; break;
+		case CUBIC10: kernel = kernelCubic10; KernelSpan = 2.0f; break;
+	}
 
 	float kernelScaling = ((float)(src.height) / min(dstHeight, src.height)); // scales the kernel (on the src ref) to the size of the biggest. = 1 if upscaling, > 1 otherwise
 	uint kernelSpan = (uint) (2 * KernelSpan * kernelScaling);
