@@ -30,3 +30,7 @@ void writeImage(Image im, const char* filename);
 Image superSample(Image src, Image srcB, Image dstB);
 
 Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation);
+
+Image down_5_4(const Image& src);
+
+Image up_5_4(const Image& src);

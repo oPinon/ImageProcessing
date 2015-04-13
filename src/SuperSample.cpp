@@ -41,11 +41,11 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	// for all dense patches in the hires image
 	for (uint x0 = 0; x0 < highWidth - patchSize; x0++) {
 
-		/*uint perc = (x0 * 100) / (highWidth - patchSize);
+		uint perc = (x0 * 100) / (highWidth - patchSize);
 		if (perc != last) {
-			printf("%u % \n", perc);
+			printf("%u % ", perc);
 			last = perc;
-		}*/
+		}
 
 		for (uint y0 = 0; y0 < highHeight - patchSize; y0++) {
 
@@ -255,5 +255,218 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 
 	free(coeffs);
 	free(starts);
+	return dst;
+}
+
+// indexes of the filters
+int sizeFilters = 7;
+int filterIndexes[] = { -3, -2, -1, 0, 1, 2, 3 };
+// filters for the 5:4 downsampling
+float d0_5_4[] = { -0.013, -0.017, 0.074, 0.804, 0.185, -0.045, 0.011 };
+float d1_5_4[] = { -0.005, 0.032, -0.129, 0.753, 0.421, -0.09, 0.017 };
+float d2_5_4[] = { 0.017, -0.09, 0.421, 0.753, -0.129, 0.032, -0.005 };
+float d3_5_4[] = { 0.011, -0.045, 0.185, 0.804, 0.074, -0.017, -0.013 };
+
+Image down_5_4(const Image& src) {
+
+	uint w = src.width; uint h = src.height;
+	uint c = src.channels;
+
+	uint w2 = ( w * 4 ) / 5; uint h2 = ( h * 4 ) / 5;
+
+	float* temp = (float*) malloc(c * w * h2 * sizeof(float));
+
+	for (uint k = 0; k < c; k++) {
+		for (uint x = 0; x < w; x++) {
+			for (uint y0 = 0; y0 < h / 5; y0++) {
+
+				uint i0 = y0 * 5 + 0;
+				float sum = 0; float norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= h) { continue; }
+					sum += d0_5_4[j] * src.img[c*(w*i + x) + k];
+					norm += d0_5_4[j];
+				}
+				uint y = y0 * 4 + 0;
+				temp[c*(w*y + x) + k] = sum / norm;
+
+				i0 = y0 * 5 + 1;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= h) { continue; }
+					sum += d1_5_4[j] * src.img[c*(w*i + x) + k];
+					norm += d1_5_4[j];
+				}
+				y = y0 * 4 + 1;
+				temp[c*(w*y + x) + k] = sum / norm;
+
+				i0 = y0 * 5 + 3;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= h) { continue; }
+					sum += d2_5_4[j] * src.img[c*(w*i + x) + k];
+					norm += d2_5_4[j];
+				}
+				y = y0 * 4 + 2;
+				temp[c*(w*y + x) + k] = sum / norm;
+
+				i0 = y0 * 5 + 4;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= h) { continue; }
+					sum += d2_5_4[j] * src.img[c*(w*i + x) + k];
+					norm += d2_5_4[j];
+				}
+				y = y0 * 4 + 3;
+				temp[c*(w*y + x) + k] = sum / norm;
+			}
+		}
+	}
+
+	Image dst;
+	dst.channels = c;
+	dst.width = w2;
+	dst.height = h2;
+	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height*sizeof(uchar));
+	
+	for (uint k = 0; k < c; k++) {
+		for (uint y = 0; y < h2; y++) {
+			for (uint x0 = 0; x0 < w / 5; x0++) {
+
+				uint i0 = x0 * 5 + 0;
+				float sum = 0; float norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= w) { continue; }
+					sum += d0_5_4[j] * temp[c*(w*y + i) + k];
+					norm += d0_5_4[j];
+				}
+				uint x = x0 * 4 + 0;
+				dst.img[c*(w2*y + x) + k] = clamp( sum / norm );
+
+				i0 = x0 * 5 + 1;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= w) { continue; }
+					sum += d1_5_4[j] * temp[c*(w*y + i) + k];
+					norm += d1_5_4[j];
+				}
+				x = x0 * 4 + 1;
+				dst.img[c*(w2*y + x) + k] = clamp( sum / norm );
+
+				i0 = x0 * 5 + 3;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= w) { continue; }
+					sum += d2_5_4[j] * temp[c*(w*y + i) + k];
+					norm += d2_5_4[j];
+				}
+				x = x0 * 4 + 2;
+				dst.img[c*(w2*y + x) + k] = clamp( sum / norm );
+
+				i0 = x0 * 5 + 4;
+				sum = 0; norm = 0;
+				for (uint j = 0; j < sizeFilters; j++) {
+					uint i = i0 + filterIndexes[j];
+					if (i < 0 || i >= w) { continue; }
+					sum += d2_5_4[j] * temp[c*(w*y + i) + k];
+					norm += d2_5_4[j];
+				}
+				x = x0 * 4 + 3;
+				dst.img[c*(w2*y + x) + k] = clamp( sum / norm );
+			}
+		}
+	}
+	free(temp);
+	return dst;
+}
+
+float u0_5_4[] = { -0.028, -0.053, 0.061, 0.925, 0.304, 0.007, 0.014 };
+float u1_5_4[] = { 0, 0.038, -0.086, 0.862, 0.52, -0.128, 0.062 };
+float u2_5_4[] = { 0.062, -0.128, 0.52, 0.862, -0.086, 0.038, 0 };
+float u3_5_4[] = { 0.014, 0.007, 0.304, 0.925, 0.061, -0.053, -0.028 };
+
+float* up_5_4(const float* src, const uint size) {
+
+	uint newSize = (size * 5) / 4;
+	float* dst = (float*)malloc(newSize*sizeof(float));
+	for (int i = 0; i < newSize; i++) { dst[i] = 0; }
+	for (int i = 0; i < size / 4; i ++) {
+		for (int j = 0; j < 5; j++) {
+			if (j == 2) { continue; }
+			float* filter = nullptr;
+			if (j == 0) { filter = u0_5_4; }
+			if (j == 1) { filter = u1_5_4; }
+			if (j == 3) { filter = u2_5_4; }
+			if (j == 4) { filter = u3_5_4; }
+			int highIndex = 5 * i + j;
+			int lowIndex = 4 * i + (j < 2 ? j : j - 1);
+			float value = src[lowIndex];
+			for (int k = 0; k < sizeFilters; k++) {
+				int index = highIndex + filterIndexes[k];
+				if (index < 0 || index >= newSize) { continue; }
+				dst[index] += filter[k] * value;
+			}
+		}
+	}
+	return dst;
+}
+
+Image up_5_4(const Image& src) {
+
+	/*uint testSize = 20;
+	float* test = (float*)malloc(testSize * sizeof(float));
+	for (uint i = 0; i < testSize; i++) { test[i] = i; }
+	float* res = up_5_4(test, testSize);
+	for (uint i = 0; i < (testSize * 5 / 4); i++) { cout << res[i] << " "; }
+	cout << endl;*/
+
+	uint w = src.width; uint h = src.height;
+	uint c = src.channels;
+
+	uint w2 = (w * 5) / 4; uint h2 = (h * 5) / 4;
+
+	float* temp = (float*)malloc(c * w * h2 * sizeof(float));
+
+	for (uint k = 0; k < c; k++) {
+		for (uint x = 0; x < w; x++) {
+			float* column = (float*)malloc(h*sizeof(float));
+			for (uint y = 0; y < h; y++) {
+				column[y] = src.img[c*(w*y + x) + k];
+			}
+			float* newColumn = up_5_4(column, h);
+			for (uint y = 0; y < h2; y++) {
+				temp[c*(w*y + x) + k] = newColumn[y];
+			}
+			free(column);
+			free(newColumn);
+		}
+	}
+
+	Image dst;
+	dst.channels = c;
+	dst.width = w2;
+	dst.height = h2;
+	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height*sizeof(uchar));
+
+	for (uint k = 0; k < c; k++) {
+		for (uint y = 0; y < h2; y++) {
+			float* row = (float*)malloc(w*sizeof(float));
+			for (uint x = 0; x < w; x++) {
+				row[x] = temp[c*(w*y + x) + k];
+			}
+			float* newRow = up_5_4(row, w);
+			for (uint x = 0; x < w2; x++) {
+				dst.img[c*(w2*y + x) + k] = clamp(newRow[x]);
+			}
+		}
+	}
+	free(temp);
 	return dst;
 }
