@@ -41,11 +41,11 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	// for all dense patches in the hires image
 	for (uint x0 = 0; x0 < highWidth - patchSize; x0++) {
 
-		uint perc = (x0 * 100) / (highWidth - patchSize);
+		/*uint perc = (x0 * 100) / (highWidth - patchSize);
 		if (perc != last) {
 			printf("%u % ", perc);
 			last = perc;
-		}
+		}*/
 
 		for (uint y0 = 0; y0 < highHeight - patchSize; y0++) {
 
@@ -147,7 +147,11 @@ static float KernelSpan = 2.0f; // 2 works for all kernels. Linear requires 1, N
 
 float kernelNN(float x) { float xAbs = abs(x); return (xAbs < 0.5) ? 1.0f : 0.0f; } // nearest neighbor
 float kernelLin(float x) { float xAbs = abs(x); return (xAbs < 1) ? 1 - xAbs : 0; } // linear
-float kernelSinc(float x) { if (x == 0) { return 1; } float xAbs = abs(x); return sin(xAbs*3.14) / (3.14*xAbs); } // sinc, 2 lobes
+float kernelSinc(float x) { // lanczos
+	if (x == 0) { return 1; }
+	float xAbs = abs(x);// if (xAbs > 2) { return 0; }
+	return (float) ( sin(xAbs*3.1416) * sin(xAbs*3.1416/2) / (xAbs*xAbs) );
+}
 float kernelCubic10(float x) {
 	x = abs(x);
 	if (x >= 2) { return 0; }
@@ -165,7 +169,7 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 	switch (interpolation) {
 		case NEAREST: kernel = kernelNN; KernelSpan = 1.0f; break;
 		case LINEAR: kernel = kernelLin; KernelSpan = 1.0f; break;
-		case SINC: kernel = kernelSinc; KernelSpan = 2.0f; break;
+		case LANCZOS: kernel = kernelSinc; KernelSpan = 2.0f; break;
 		case CUBIC10: kernel = kernelCubic10; KernelSpan = 2.0f; break;
 	}
 
@@ -255,6 +259,7 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 
 	free(coeffs);
 	free(starts);
+	free(temp);
 	return dst;
 }
 
@@ -420,13 +425,6 @@ float* up_5_4(const float* src, const uint size) {
 
 Image up_5_4(const Image& src) {
 
-	/*uint testSize = 20;
-	float* test = (float*)malloc(testSize * sizeof(float));
-	for (uint i = 0; i < testSize; i++) { test[i] = i; }
-	float* res = up_5_4(test, testSize);
-	for (uint i = 0; i < (testSize * 5 / 4); i++) { cout << res[i] << " "; }
-	cout << endl;*/
-
 	uint w = src.width; uint h = src.height;
 	uint c = src.channels;
 
@@ -465,6 +463,8 @@ Image up_5_4(const Image& src) {
 			for (uint x = 0; x < w2; x++) {
 				dst.img[c*(w2*y + x) + k] = clamp(newRow[x]);
 			}
+			free(row);
+			free(newRow);
 		}
 	}
 	free(temp);

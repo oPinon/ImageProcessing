@@ -17,7 +17,7 @@ typedef struct _ImageD {
 	uint width, height, channels;
 } ImageD;
 
-typedef enum { NEAREST, LINEAR, SINC, CUBIC10 } Interpolation;
+typedef enum { NEAREST, LINEAR, LANCZOS, CUBIC10 } Interpolation;
 
 Image loadImage(const char* filename);
 void writeImage(Image im, const char* filename);
@@ -34,3 +34,12 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 Image down_5_4(const Image& src);
 
 Image up_5_4(const Image& src);
+
+inline Image copy(const Image& src) {
+	Image dst;
+	dst.channels = src.channels;
+	dst.width = src.width; dst.height = src.height;
+	dst.img = (uchar*)malloc(src.channels*src.width*src.height*sizeof(uchar));
+	for (uint i = 0; i < src.channels*src.width*src.height; i++) { dst.img[i] = src.img[i]; }
+	return dst;
+}
