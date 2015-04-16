@@ -17,7 +17,7 @@ typedef struct _ImageD {
 	uint width, height, channels;
 } ImageD;
 
-typedef enum { NEAREST, LINEAR, LANCZOS, CUBIC10 } Interpolation;
+typedef enum { NEAREST, LINEAR, LANCZOS, CUBIC } Interpolation;
 
 Image loadImage(const char* filename);
 void writeImage(Image im, const char* filename);

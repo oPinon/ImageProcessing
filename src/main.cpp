@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
 	if (argc == 3) {
 		width = 4 * src.width;
-		height = 4* src.height;
+		height = 4 * src.height;
 	}
 	else {
 		width = stoi(argv[3]);
@@ -38,9 +38,7 @@ int main(int argc, char** argv) {
 	Interpolation down = up;
 
 	Image low = resize(src, src.width / step, src.height / step, down);
-	//Image low = down_5_4(src);
 	Image srcB = resize(low, src.width, src.height, up);
-	//Image srcB = up_5_4(low);
 
 	free(low.img);
 
@@ -48,11 +46,10 @@ int main(int argc, char** argv) {
 
 	do {
 		Image dstB = resize(dst, dst.width*step, dst.height*step, up);
-		//Image dstB = up_5_4(dst);
 		free(dst.img);
 		dst = superSample(src, srcB, dstB);
 		free(dstB.img);
-		cout << " [ " << dst.width << "; " << dst.height << " ]" << endl;
+		//cout << " [ " << dst.width << "; " << dst.height << " ]" << endl;
 		
 	} while (dst.width < width || dst.height < height);
 
