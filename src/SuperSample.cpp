@@ -18,12 +18,13 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	uint highWidth = dstB.width;
 	uint highHeight = dstB.height;
 
-	uint lowWidth = src.width;
-	uint lowHeight = src.height;
-	// error if src & srcB have != width or height
+	uint lowWidth = srcB.width;
+	uint lowHeight = srcB.height;
+	//if (src.width != srcB.width) { cerr << "Error : src and srcB have different widths" << endl; throw exception::exception(); }
+	//if (src.height != srcB.height) { cerr << "Error : src and srcB have different heights" << endl; throw exception::exception(); }
 
 	uint channels = src.channels;
-	// error if src & srcB & dstB have != channels
+	if (src.channels != srcB.channels) { cerr << "Error : src and srcB have different channels" << endl; throw exception::exception(); }
 
 	ImageD diff; // difference image between dstB(lurry) and dst. Pixels will have to be averaged
 	diff.channels = channels;
@@ -92,8 +93,10 @@ Image superSample(Image src, Image srcB, Image dstB) {
 				for (uint x = 0; x < patchSize; x++) {
 					for (uint y = 0; y < patchSize; y++) {
 
-						uint indexLow = channels*(lowWidth*(bestPatchY + y) + x + bestPatchX) + k;
-						int d = ((int) src.img[indexLow]) - ((int) srcB.img[indexLow]);
+						// Warning : src and srcB might have some slightly different sizes, due to rounding
+						uint indexSRC = channels*(src.width*(bestPatchY + y) + x + bestPatchX) + k;
+						uint indexSRCB = channels*(srcB.width*(bestPatchY + y) + x + bestPatchX) + k;
+						int d = ((int) src.img[indexSRC]) - ((int) srcB.img[indexSRCB]);
 
 						uint indexHigh = channels*(diff.width*(y0+y) + x0+x) + k;
 						diff.img[indexHigh] += d;

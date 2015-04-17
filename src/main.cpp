@@ -37,15 +37,18 @@ int main(int argc, char** argv) {
 	Interpolation up = LANCZOS;
 	Interpolation down = up;
 
-	Image low = resize(src, src.width / step, src.height / step, down);
-	Image srcB = resize(low, src.width, src.height, up);
+	//Image low = resize(src, src.width / step, src.height / step, down);
+	//Image srcB = resize(low, src.width, src.height, up);
+	Image low = down_5_4(src);
+	Image srcB = up_5_4(low);
 
 	free(low.img);
 
 	Image dst = copy(src);
 
 	do {
-		Image dstB = resize(dst, dst.width*step, dst.height*step, up);
+		//Image dstB = resize(dst, dst.width*step, dst.height*step, up);
+		Image dstB = up_5_4(dst);
 		free(dst.img);
 		dst = superSample(src, srcB, dstB);
 		free(dstB.img);
