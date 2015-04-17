@@ -11,8 +11,13 @@ typedef struct _Image {
 	uint width, height, channels;
 } Image;
 
+typedef struct _ImageF {
+	float* img;
+	uint width, height, channels;
+} ImageF;
+
 typedef struct _ImageD {
-	int* img; // sum of values of each pixels
+	double* img; // sum of values of each pixels
 	uint* count; // nb of values for each pixels (for future averaging)
 	uint width, height, channels;
 } ImageD;
@@ -27,19 +32,46 @@ void writeImage(Image im, const char* filename);
 * srcB : blurred version of src
 * dstB : blurred version of the destination image
 */
-Image superSample(Image src, Image srcB, Image dstB);
+ImageF superSample(ImageF src, ImageF srcB, ImageF dstB);
 
-Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation);
+ImageF resize(const ImageF& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation);
 
-Image down_5_4(const Image& src);
+ImageF down_5_4(const ImageF& src);
 
-Image up_5_4(const Image& src);
+ImageF up_5_4(const ImageF& src);
 
-inline Image copy(const Image& src) {
-	Image dst;
+inline ImageF copy(const ImageF& src) {
+	ImageF dst;
 	dst.channels = src.channels;
 	dst.width = src.width; dst.height = src.height;
-	dst.img = (uchar*)malloc(src.channels*src.width*src.height*sizeof(uchar));
+	dst.img = (float*)malloc(src.channels*src.width*src.height*sizeof(float));
 	for (uint i = 0; i < src.channels*src.width*src.height; i++) { dst.img[i] = src.img[i]; }
+	return dst;
+}
+
+inline Image convert(const ImageF& src) {
+	Image dst;
+	dst.width = src.width; dst.height = src.height;
+	dst.channels = src.channels;
+	uint size = src.width*src.height*src.channels;
+	dst.img = (uchar*)malloc(size*sizeof(uchar));
+	for (uint i = 0; i < size; i++) {
+		float v = src.img[i];
+		if (v > 255) { v = 255; }
+		else if (v < 0) { v = 0; }
+		dst.img[i] = (uchar)(v+0.5);
+	}
+	return dst;
+}
+
+inline ImageF convert(const Image& src) {
+	ImageF dst;
+	dst.width = src.width; dst.height = src.height;
+	dst.channels = src.channels;
+	uint size = src.width*src.height*src.channels;
+	dst.img = (float*)malloc(size*sizeof(float));
+	for (uint i = 0; i < size; i++) {
+		dst.img[i] = (float) src.img[i];
+	}
 	return dst;
 }

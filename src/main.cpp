@@ -16,7 +16,9 @@ int main(int argc, char** argv) {
 
 	char* srcFileName = argv[1];
 	char* dstFileName = argv[2];
-	Image src = loadImage(srcFileName);
+	Image srcU = loadImage(srcFileName);
+	ImageF src = convert(srcU);
+	free(srcU.img);
 	uint width, height;
 
 	if (argc == 3) {
@@ -37,18 +39,15 @@ int main(int argc, char** argv) {
 	Interpolation up = LANCZOS;
 	Interpolation down = up;
 
-	//Image low = resize(src, src.width / step, src.height / step, down);
-	//Image srcB = resize(low, src.width, src.height, up);
-	Image low = down_5_4(src);
-	Image srcB = up_5_4(low);
+	ImageF low = resize(src, src.width / step, src.height / step, down);
+	ImageF srcB = resize(low, src.width, src.height, up);
 
 	free(low.img);
 
-	Image dst = copy(src);
+	ImageF dst = copy(src);
 
 	do {
-		//Image dstB = resize(dst, dst.width*step, dst.height*step, up);
-		Image dstB = up_5_4(dst);
+		ImageF dstB = resize(dst, dst.width*step, dst.height*step, up);
 		free(dst.img);
 		dst = superSample(src, srcB, dstB);
 		free(dstB.img);
@@ -56,11 +55,13 @@ int main(int argc, char** argv) {
 		
 	} while (dst.width < width || dst.height < height);
 
-	writeImage(dst, dstFileName);
+	Image dstU = convert(dst);
+	writeImage(dstU, dstFileName);
 
 	free(srcB.img);
 	free(dst.img);
 	free(src.img);
+	free(dstU.img);
 
 	return 0;
 }

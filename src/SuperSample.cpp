@@ -10,10 +10,10 @@ template<class type>
 uchar clamp(type v) {
 	if (v < 0) { return 0; }
 	if (v > 255) { return 255; }
-	return (uchar) v;
+	return (uchar) (v+0.5);
 }
 
-Image superSample(Image src, Image srcB, Image dstB) {
+ImageF superSample(ImageF src, ImageF srcB, ImageF dstB) {
 
 	uint highWidth = dstB.width;
 	uint highHeight = dstB.height;
@@ -31,7 +31,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 	diff.width = highWidth;
 	diff.height = highHeight;
 	uint length = diff.channels * diff.width * diff.height;
-	diff.img = (int*) malloc( length*sizeof(int) );
+	diff.img = (double*) malloc( length*sizeof(double) );
 	diff.count = (uint*) malloc( length*sizeof(uint) );
 	for (uint i = 0; i < length; i++) { 
 		diff.img[i] = 0;
@@ -50,7 +50,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 
 		for (uint y0 = 0; y0 < highHeight - patchSize; y0++) {
 
-			uint minDist = UINT_MAX; // compute the closest patch
+			double minDist = INFINITY; // compute the closest patch
 			uint bestPatchX = 0;
 			uint bestPatchY = 0;
 
@@ -67,7 +67,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 					if (x2 < 0 || x2 >= lowWidth - patchSize) { continue; }
 					if (y2 < 0 || y2 >= lowHeight - patchSize) { continue; }
 
-					uint dist = 0;
+					double dist = 0;
 					// for all pixels of the lowres patch add the distance between dstB and srcB
 					for (uint k = 0; k < channels; k++) {
 						for (uint x3 = 0; x3 < patchSize; x3++) {
@@ -75,7 +75,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 
 								uint indexLow = channels * (lowWidth * (y2 + y3) + x2 + x3) + k; // pixel at the lowres patch
 								uint indexHigh = channels * (highWidth * (y0 + y3) + x0 + x3) + k; // pixel at the highres patch
-								int d = ((int)dstB.img[indexHigh]) - ((int)srcB.img[indexLow]);
+								float d = dstB.img[indexHigh] - srcB.img[indexLow];
 								dist += d*d;
 							}
 						}
@@ -96,7 +96,7 @@ Image superSample(Image src, Image srcB, Image dstB) {
 						// Warning : src and srcB might have some slightly different sizes, due to rounding
 						uint indexSRC = channels*(src.width*(bestPatchY + y) + x + bestPatchX) + k;
 						uint indexSRCB = channels*(srcB.width*(bestPatchY + y) + x + bestPatchX) + k;
-						int d = ((int) src.img[indexSRC]) - ((int) srcB.img[indexSRCB]);
+						float d = src.img[indexSRC] - srcB.img[indexSRCB];
 
 						uint indexHigh = channels*(diff.width*(y0+y) + x0+x) + k;
 						diff.img[indexHigh] += d;
@@ -107,18 +107,18 @@ Image superSample(Image src, Image srcB, Image dstB) {
 		}
 	}
 
-	Image dst;
+	ImageF dst;
 	dst.channels = channels;
 	dst.width = highWidth;
 	dst.height = highHeight;
-	dst.img = (uchar*) malloc(channels*dst.width*dst.height*sizeof(uchar));
+	dst.img = (float*) malloc(channels*dst.width*dst.height*sizeof(float));
 
 	for (uint i = 0; i < channels * dst.width * dst.height; i++) {
 		uint count = diff.count[i];
 		int d = 0;
 		if (count > 0) { d = diff.img[i] / ((int) count);  }
 		int pix = dstB.img[i] + d;
-		dst.img[i] = clamp( pix );
+		dst.img[i] = pix;
 	}
 
 	free(diff.img);
@@ -176,7 +176,7 @@ float kernelCubic1313(float x) {
 	}
 } // Mitchell
 
-Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation) {
+ImageF resize(const ImageF& src, const uint dstWidth, const uint dstHeight, Interpolation interpolation) {
 
 	auto kernel = kernelNN;
 	switch (interpolation) {
@@ -211,7 +211,7 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 		for (uint x = 0; x < src.width; x++) {
 			for (uint y = 0; y < dstHeight; y++) {
 
-				float sum = 0, norm = 0;
+				double sum = 0, norm = 0;
 				for (uint i = 0; i < kernelSpan; i++) {
 					uint srcIndex = src.channels*(src.width*max(0, min(starts[y] + i, src.height - 1))+x) + k;
 					float coeff = coeffs[y*kernelSpan + i];
@@ -247,25 +247,25 @@ Image resize(const Image& src, const uint dstWidth, const uint dstHeight, Interp
 		}
 	}
 
-	Image dst;
+	ImageF dst;
 	dst.channels = src.channels;
 	dst.width = dstWidth;
 	dst.height = dstHeight;
-	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height*sizeof(uchar));
+	dst.img = (float*)malloc(dst.channels*dst.width*dst.height*sizeof(float));
 
 	// TODO : alpha should be used as an interpolation factor
 	for (uint k = 0; k < dst.channels; k++) {
 		for (uint y = 0; y < dst.height; y++) {
 			for (uint x = 0; x < dst.width; x++) {
 
-				float sum = 0, norm = 0;
+				double sum = 0, norm = 0;
 				for (uint i = 0; i < kernelSpan; i++) {
 					uint srcIndex = src.channels*(src.width*y + max(0,min(starts[x] + i, src.width-1))) + k;
 					float coeff = coeffs[x*kernelSpan + i];
 					norm += coeff;
 					sum += temp[srcIndex] * coeff;
 				}
-				dst.img[dst.channels*(dst.width*y + x) + k] = clamp(sum / norm);
+				dst.img[dst.channels*(dst.width*y + x) + k] = sum / norm;
 			}
 		}
 	}
@@ -299,7 +299,7 @@ float* down_5_4(const float* src, const uint size) {
 			if (j == 3) { filter = d3_5_4; }
 			int highIndex = 5 * i + ( j < 2 ? j : j + 1);
 			int lowIndex = 4 * i + j;
-			float sum = 0; float norm = 0;
+			double sum = 0; double norm = 0;
 			for (int k = 0; k < sizeFilters; 
 				k++) {
 				int index = highIndex + filterIndexes[k];
@@ -313,7 +313,7 @@ float* down_5_4(const float* src, const uint size) {
 	return dst;
 }
 
-Image down_5_4(const Image& src) {
+ImageF down_5_4(const ImageF& src) {
 
 	uint w = src.width; uint h = src.height;
 	uint c = src.channels;
@@ -337,11 +337,11 @@ Image down_5_4(const Image& src) {
 		}
 	}
 
-	Image dst;
+	ImageF dst;
 	dst.channels = c;
 	dst.width = w2;
 	dst.height = h2;
-	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height*sizeof(uchar));
+	dst.img = (float*)malloc(dst.channels*dst.width*dst.height*sizeof(float));
 
 	for (uint k = 0; k < c; k++) {
 		for (uint y = 0; y < h2; y++) {
@@ -370,8 +370,8 @@ float* up_5_4(const float* src, const uint size) {
 
 	uint newSize = (size * 5) / 4;
 	float* dst = (float*)malloc(newSize*sizeof(float));
-	float* sum = (float*)malloc(newSize*sizeof(float));
-	float* norm = (float*)malloc(newSize*sizeof(float));
+	double* sum = (double*)malloc(newSize*sizeof(double));
+	double* norm = (double*)malloc(newSize*sizeof(double));
 	for (int i = 0; i < newSize; i++) { dst[i] = 0; sum[i] = 0; norm[i] = 0; }
 	for (int i = 0; i < size / 4; i ++) {
 		for (int j = 0; j < 5; j++) {
@@ -397,7 +397,7 @@ float* up_5_4(const float* src, const uint size) {
 	return dst;
 }
 
-Image up_5_4(const Image& src) {
+ImageF up_5_4(const ImageF& src) {
 
 	uint w = src.width; uint h = src.height;
 	uint c = src.channels;
@@ -421,11 +421,11 @@ Image up_5_4(const Image& src) {
 		}
 	}
 
-	Image dst;
+	ImageF dst;
 	dst.channels = c;
 	dst.width = w2;
 	dst.height = h2;
-	dst.img = (uchar*)malloc(dst.channels*dst.width*dst.height*sizeof(uchar));
+	dst.img = (float*)malloc(dst.channels*dst.width*dst.height*sizeof(float));
 
 	for (uint k = 0; k < c; k++) {
 		for (uint y = 0; y < h2; y++) {
