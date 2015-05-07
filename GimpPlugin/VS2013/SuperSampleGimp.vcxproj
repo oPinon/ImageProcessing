@@ -11,7 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.c" />
+    <ClCompile Include="..\src\GimpPlugin.c" />
+    <ClCompile Include="..\src\SuperSample.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\GimpPlugin.h" />
+    <ClInclude Include="..\src\SuperSample.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4100DF3D-9287-4CA4-99BD-F3FD8E2BB3FE}</ProjectGuid>
