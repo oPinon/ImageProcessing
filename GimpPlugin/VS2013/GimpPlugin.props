@@ -2,18 +2,15 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <OutDir>..\..\..\..\..\.gimp-2.8\plug-ins\</OutDir>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\opinon\Documents\GitHub\gimp;C:\Users\opinon\Documents\GitHub\gegl\gegl;C:\Users\opinon\Documents\GitHub\gegl\gegl\graph;C:\Users\opinon\Documents\GitHub\gegl\gegl\module;C:\Users\opinon\Documents\GitHub\gegl\gegl\opencl;C:\Users\opinon\Documents\GitHub\gegl\gegl\operation;C:\Users\opinon\Documents\GitHub\gegl\gegl\process;C:\Users\opinon\Documents\GitHub\gegl\gegl\buffer;C:\Users\opinon\Documents\GitHub\gegl\gegl\property-types;C:\Users\opinon\Documents\GitHub\babl;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\cairo;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\gdk-pixbuf-2.0;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\glib-2.0;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\lib\glib-2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\opinon\Documents\GitHub\gimp;C:\Users\opinon\Documents\GitHub\gegl\gegl;C:\Users\opinon\Documents\GitHub\gegl\gegl\graph;C:\Users\opinon\Documents\GitHub\gegl\gegl\module;C:\Users\opinon\Documents\GitHub\gegl\gegl\opencl;C:\Users\opinon\Documents\GitHub\gegl\gegl\operation;C:\Users\opinon\Documents\GitHub\gegl\gegl\process;C:\Users\opinon\Documents\GitHub\gegl\gegl\buffer;C:\Users\opinon\Documents\GitHub\gegl\gegl\property-types;C:\Users\opinon\Documents\GitHub\babl;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\cairo;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\gdk-pixbuf-2.0;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\include\glib-2.0;C:\Users\opinon\Libraries\gtk+-bundle_3.6.4-20130921_win32\lib\glib-2.0\include;C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\gtk+-bundle_2.24.10-20120208_win32\include\gtk-2.0;C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\gtk+-bundle_2.24.10-20120208_win32\include\pango-1.0;C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\gtk+-bundle_2.24.10-20120208_win32\lib\gtk-2.0\include;C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\gtk+-bundle_2.24.10-20120208_win32\include\atk-1.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libgimp-2.0-0.lib;libgimpbase-2.0-0.lib;libgimpui-2.0-0.lib;libgimpwidgets-2.0-0.lib;libglib-2.0-0.lib;libgobject-2.0-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libgimp-2.0-0.lib;libgimpbase-2.0-0.lib;libgimpui-2.0-0.lib;libgimpwidgets-2.0-0.lib;libglib-2.0-0.lib;libgobject-2.0-0.lib;gtk-win32-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\Lib;C:\Users\opinon\Documents\GitHub\ImageProcessing\GimpPlugin\Libraries\gtk+-bundle_2.24.10-20120208_win32\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>

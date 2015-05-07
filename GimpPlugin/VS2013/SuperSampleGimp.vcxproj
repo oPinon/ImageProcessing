@@ -50,6 +50,9 @@
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link />
+    <PostBuildEvent>
+      <Command>copy "$(TargetPath)" "$(USERPROFILE)\.gimp-2.8\plug-ins\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -62,6 +65,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(TargetPath)" "$(USERPROFILE)\.gimp-2.8\plug-ins\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
