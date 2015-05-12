@@ -1,8 +1,10 @@
 #include "SuperSample.h"
 
+// used for the self-similarity matching
 gint patchSize = 5;
 gint searchSize = 2;
 
+// used for the progress bar
 gint toProcess;
 gint processed;
 
@@ -31,16 +33,16 @@ Image supersample(guchar* srcImg, gint srcW, gint srcH, gint channels, FilterVal
 	toProcess = 0; processed = 0;
 	gint w = srcW, h = srcH;
 	while (w < width || h < height) {
-		w *= step;
-		h *= step;
+		w = (gint)(w*step);
+		h = (gint)(h*step);
 		toProcess += w;
 	}
 
 
 	ImageF src = charToFloat(srcC);
 
-	ImageF low = resize(src, src.width / step, src.height / step);
-	ImageF srcB = resize(low, src.width, src.height);
+	ImageF low = resize(src, (gint)(src.width / step), (gint)(src.height / step), fvalues.interpolation);
+	ImageF srcB = resize(low, src.width, src.height, fvalues.interpolation);
 
 	g_free(low.img);
 
@@ -48,11 +50,17 @@ Image supersample(guchar* srcImg, gint srcW, gint srcH, gint channels, FilterVal
 
 	while (dst.width < width || dst.height < height) {
 
-		ImageF dstB = resize(dst, dst.width*step, dst.height*step);
+		ImageF dstB = resize(dst, (gint)(dst.width*step), (gint)(dst.height*step), fvalues.interpolation);
 		g_free(dst.img);
 		dst = predict(src, srcB, dstB);
 		g_free(dstB.img);
 
+	}
+
+	if (fvalues.adjust) {
+		ImageF adjusted = resize(dst, width, height, LANCZOS);
+		g_free(dst.img);
+		dst = adjusted;
 	}
 
 	Image dstU = floatToChar(dst);
@@ -64,19 +72,20 @@ Image supersample(guchar* srcImg, gint srcW, gint srcH, gint channels, FilterVal
 	return dstU;
 }
 
-/*float max(const float a, const float b) { if (a > b) { return a; } else { return b; } }
-gint min(const gint a, const gint b) { if (a < b) { return a; } else { return b; } }*/
 float Abs(float x) { return x >= 0 ? x : -x; }
 
-/*float kernel(float x) { // Linear
-float xAbs = Abs(x); return xAbs < 1 ? 1 - xAbs : 0;
-}*/
-/*float kernel(float x) { // Lanczos
+float kernelLinear(float x) { // Linear
+
+	float xAbs = Abs(x); return xAbs < 1 ? 1 - xAbs : 0;
+}
+float kernelLanczos(float x) { // Lanczos 2
+
 	if (x == 0) { return 1; }
-	float xAbs = Abs(x);
+	float xAbs = Abs(x); if (x > 2) { return 0; }
 	return (float)(sin(xAbs*3.1416) * sin(xAbs*3.1416 / 2) / (xAbs*xAbs));
-	}*/
-float kernel(float x) { // Mitchell (Cubic1313)
+}
+float kernelCubic1313(float x) { // Mitchell (Cubic1313)
+
 	x = Abs(x);
 	if (x >= 2) { return 0; }
 	else if (x >= 1) {
@@ -87,7 +96,14 @@ float kernel(float x) { // Mitchell (Cubic1313)
 	}
 }
 
-ImageF resize(ImageF src, gint dstW, gint dstH) {
+ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
+
+	float(*kernel)(float);
+
+	switch (interpolation) {
+	case CUBIC: kernel = &kernelCubic1313; break;
+	case LANCZOS: kernel = &kernelLanczos; break;
+	}
 
 	float KernelSpan = 2.0f;
 	float kernelScaling = ((float)(src.height) / min(dstH, src.height));
@@ -212,6 +228,7 @@ Image floatToChar(ImageF src) {
 }
 
 typedef struct _ImageD {
+
 	double* img; // sum of values of each pixels
 	gint* count; // nb of values for each pixels (for future averaging)
 	gint width, height, channels;
@@ -249,7 +266,7 @@ ImageF predict(ImageF src, ImageF srcB, ImageF dstB) {
 
 		for (y0 = 0; y0 < highHeight - patchSize; y0++) {
 
-			double minDist = INFINITY;
+			double minDist = G_MAXDOUBLE;
 
 			gint bestPatchX = 0;
 			gint bestPatchY = 0;
@@ -315,10 +332,10 @@ ImageF predict(ImageF src, ImageF srcB, ImageF dstB) {
 
 	for (i = 0; i < channels * dst.width * dst.height; i++) {
 		gint count = diff.count[i];
-		int d = 0;
+		double d = 0;
 		if (count > 0) { d = diff.img[i] / ((int)count); }
-		int pix = dstB.img[i] + d;
-		dst.img[i] = pix;
+		double pix = dstB.img[i] + d;
+		dst.img[i] = (float) pix;
 	}
 
 	g_free(diff.img);
