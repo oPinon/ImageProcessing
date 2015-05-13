@@ -230,7 +230,7 @@ filter_dialog(GimpDrawable *drawable)
 		gtk_widget_show(height_hbox);
 		gtk_container_add(GTK_CONTAINER(vbox), height_hbox);
 
-		GtkObject* height_adj = gtk_adjustment_new(drawable->width, 0, G_MAXDOUBLE, 1, 32, 32);
+		GtkObject* height_adj = gtk_adjustment_new(drawable->height, 0, G_MAXDOUBLE, 1, 32, 32);
 		g_signal_connect(height_adj, "value_changed", G_CALLBACK(gimp_int_adjustment_update), &fvalues.height);
 
 		GtkWidget* height_button = gtk_spin_button_new(GTK_ADJUSTMENT(height_adj), 1, 0);

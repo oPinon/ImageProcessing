@@ -95,6 +95,8 @@ float kernelCubic1313(float x) { // Mitchell (Cubic1313)
 		return 1 / 6.0f * (7 * x*x*x - 12 * x*x + 5.3333f);
 	}
 }
+gint Min(gint a, gint b) { return a < b ? a : b; }
+gint Max(gint a, gint b) { return a > b ? a : b; }
 
 ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 
@@ -106,7 +108,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 	}
 
 	float KernelSpan = 2.0f;
-	float kernelScaling = ((float)(src.height) / min(dstH, src.height));
+	float kernelScaling = ((float)(src.height) / Min(dstH, src.height));
 	gint kernelSpan = (gint)(2 * KernelSpan * kernelScaling);
 
 	float* coeffs = g_new(float, dstH*kernelSpan);
@@ -116,7 +118,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 	for (i = 0; i < dstH; i++) {
 
 		float yDst = ((float)(i + 0.5f)*src.height) / dstH;
-		gint start = (gint)(max(0, yDst - 0.5f - kernelSpan / 2) + 0.999f);
+		gint start = (gint)(Max(0, yDst - 0.5f - kernelSpan / 2) + 0.999f);
 		starts[i] = start;
 		for (j = 0; j < kernelSpan; j++) {
 			float ySrc = start + j + 0.5f;
@@ -134,7 +136,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 
 				float sum = 0, norm = 0;
 				for (i = 0; i < kernelSpan; i++) {
-					gint srcIndex = src.channels*(src.width*max(0, min(starts[y] + i, src.height - 1)) + x) + k;
+					gint srcIndex = src.channels*(src.width*Max(0, Min(starts[y] + i, src.height - 1)) + x) + k;
 					float coeff = coeffs[y*kernelSpan + i];
 					norm += coeff;
 					sum += src.img[srcIndex] * coeff;
@@ -147,7 +149,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 	g_free(coeffs);
 	g_free(starts);
 
-	kernelScaling = ((float)(src.width) / min(dstW, src.width));
+	kernelScaling = ((float)(src.width) / Min(dstW, src.width));
 	kernelSpan = (gint)(2 * KernelSpan * kernelScaling); // total span of the kernel
 
 	coeffs = g_new(float, dstW*kernelSpan);
@@ -156,7 +158,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 	for (i = 0; i < dstW; i++) {
 
 		float xDst = ((float)(i + 0.5f)*src.width) / dstW;
-		gint start = (gint)(max(0, xDst - 0.5f - kernelSpan / 2) + 0.999f);
+		gint start = (gint)(Max(0, xDst - 0.5f - kernelSpan / 2) + 0.999f);
 		starts[i] = start;
 		for (j = 0; j < kernelSpan; j++) {
 			float xSrc = start + j + 0.5f;
@@ -173,7 +175,7 @@ ImageF resize(ImageF src, gint dstW, gint dstH, Kernel interpolation) {
 
 				float sum = 0, norm = 0;
 				for (i = 0; i < kernelSpan; i++) {
-					gint srcIndex = src.channels*(src.width*y + max(0, min(starts[x] + i, src.width - 1))) + k;
+					gint srcIndex = src.channels*(src.width*y + Max(0, Min(starts[x] + i, src.width - 1))) + k;
 					float coeff = coeffs[x*kernelSpan + i];
 					norm += coeff;
 					sum += temp[srcIndex] * coeff;
