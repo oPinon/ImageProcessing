@@ -25,7 +25,7 @@ typedef struct _ImageD {
 typedef enum { NEAREST, LINEAR, LANCZOS, CUBIC } Interpolation;
 
 Image loadImage(const char* filename);
-void writeImage(Image im, const char* filename);
+void writeImage(Image im, const char* filename); // TODO : currently works only for RGBA images
 
 /*
 * src : source image
