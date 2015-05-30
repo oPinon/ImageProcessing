@@ -26,6 +26,7 @@
     <ClInclude Include="..\src\Filtering.h" />
     <ClInclude Include="..\src\Image.h" />
     <ClInclude Include="..\src\NeuralNetwork.h" />
+    <ClInclude Include="..\src\Inpainting.h" />
     <ClInclude Include="..\src\SuperSample.h" />
     <ClInclude Include="..\src\Tiler.h" />
     <ClInclude Include="..\src\Upscaling.h" />
