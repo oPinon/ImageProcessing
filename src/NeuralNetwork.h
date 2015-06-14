@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 
 #include "SuperSample.h"
 
@@ -52,3 +53,5 @@ public:
 
 	Image imageCompletion(const Image& src, int imageSize, int nbIterations);
 };
+
+void imageCompletion(int argc, char** argv);

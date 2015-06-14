@@ -12,6 +12,10 @@ struct Pixel {
 		uint leftI = img.channels*(img.width*y + x - 1);
 		uint bottomI = img.channels*(img.width*(y + 1) + x);
 		uint rightI = img.channels*(img.width*y + x + 1);
+		if (y == 0) { upI = pixI; }
+		if (y == img.height - 1) { bottomI = pixI; }
+		if (x == 0) { leftI = pixI; }
+		if (x == img.width - 1) { rightI = pixI; }
 
 		pix = img.img + pixI;
 		up = img.img + upI; left = img.img + leftI;
@@ -25,6 +29,10 @@ struct Pixel {
 		uint leftI = target.channels*(target.width*y + x - 1);
 		uint bottomI = target.channels*(target.width*(y + 1) + x);
 		uint rightI = target.channels*(target.width*y + x + 1);
+		if (y == 0) { upI = pixI; }
+		if (y == img.height - 1) { bottomI = pixI; }
+		if (x == 0) { leftI = pixI; }
+		if (x == img.width - 1) { rightI = pixI; }
 
 		for (uint k = 0; k < 3; k++) {
 			laplacian[k] = target.img[pixI + k] - (target.img[leftI + k] + target.img[upI + k] + target.img[bottomI + k] + target.img[rightI + k]) / 4;
@@ -71,5 +79,19 @@ Image inpainting(const Image& src0, const Image* target0 = NULL, float threshold
 
 void inpainting(int argc, char** argv) {
 
-
+	if (argc < 3) {
+		cout << "Command line arguments are : src.png dst.png <target.png optionnal>" << endl;
+	}
+	else {
+		Image src = loadImage(argv[1]);
+		Image dst;
+		if (argc == 3) {
+			dst = inpainting(src);
+		}
+		else {
+			Image target = loadImage(argv[3]);
+			dst = inpainting(src, &target);
+		}
+		writeImage(dst, argv[2]);
+	}
 }

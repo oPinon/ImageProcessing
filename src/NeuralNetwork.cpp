@@ -146,3 +146,32 @@ Image Network::imageCompletion(const Image& src, int imageSize, int nbIterations
 	free(low.img);
 	return dst;
 }
+
+void imageCompletion(int argc, char** argv) {
+
+	int imageSize = 32;
+	int nbIterations = 1000;
+
+	if (argc < 3) {
+		cout << "command line arguments are : <input_image.png> <output_image.png> (<nbIterations=" << nbIterations << "> <imageSize=" << imageSize << "> optional)" << endl;
+		return;
+	}
+
+	char* srcFileName = argv[1];
+	char* dstFileName = argv[2];
+	Image src = loadImage(srcFileName);
+
+	if (argc >= 4) {
+		nbIterations = stoi(argv[3]);
+	}
+	if (argc >= 5) {
+		imageSize = stoi(argv[4]);
+	}
+
+	Network net({ 2, 10, 10, 3 });
+	Image dst = net.imageCompletion(src, imageSize, nbIterations);
+	free(src.img);
+	writeImage(dst, dstFileName);
+	free(dst.img);
+
+}
